@@ -8,13 +8,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-<ListView
+<com.dnocode.lib.widgets.AutoBindingListView
 
     android:id="@+id/listview_example"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" />
 
-    </ListView>
+
 
     </RelativeLayout>
 

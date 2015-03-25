@@ -9,7 +9,14 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.dnocode.lib.business.list.annotations.Bind;
+import com.squareup.picasso.RequestCreator;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -20,11 +27,11 @@ import java.util.HashMap;
  */
 public  abstract class HolderBuilder<E> {
 
+    private final static int COMPONENTS_KEY=1001;
     protected ViewComponentsHolder mHolder;
     protected E mModel;
     protected  HashMap<Integer,Object> mParameters;
     protected Context mContext;
-
     private View mLastObject;
     private int  mLastObjectRef;
 
@@ -70,9 +77,42 @@ public  abstract class HolderBuilder<E> {
      */
     protected void bindHolderToView(ViewComponentsHolder holder, ViewGroup view) {
 
-        for(int i =0 ; i<view.getChildCount();i++){
-            View child=view.getChildAt(i);
-            holder.takeIt(child);
+        ArrayList<Bind>  annotations =  RuntimeAnnotations.read().from(mModel.getClass()).pullOutAnnotations();
+
+        boolean  clazzWasAnnoted=false;
+
+        for(Annotation bAnnotation : annotations){
+
+            if(bAnnotation instanceof Bind){
+
+                int ids[]=((Bind) bAnnotation).to();
+
+                clazzWasAnnoted=true;
+
+                for(int id :ids){
+                    holder.takeIt(view.findViewById(id));
+
+                }
+            }
+        }
+        /**auto mapping is disabled ispection viewgroup hierarchy**/
+        if(!clazzWasAnnoted) {
+
+            for (int i = 0; i < view.getChildCount(); i++) {
+
+                View child = view.getChildAt(i);
+
+                if (child instanceof ViewGroup) {
+
+                    if (((ViewGroup) child).getChildCount() > 0) {
+
+                        bindHolderToView(holder, view);
+                    }
+                }
+
+                holder.takeIt(child);
+            }
+
         }
     }
 
@@ -94,7 +134,6 @@ public  abstract class HolderBuilder<E> {
     protected View createView(ViewGroup parent,int layoutResource){
 
         LayoutInflater  mInflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
         return mInflater.inflate(layoutResource, parent, false);
     }
 
@@ -107,8 +146,72 @@ public  abstract class HolderBuilder<E> {
      * use metod findView for retrieve view**/
     protected   void update(E model){
 
+        ArrayList<Field> annotatedFields=RuntimeAnnotations.read(Bind.class).from(model.getClass()).pullOutFields();
+
+        try {
+
+            for (Field field : annotatedFields) {
+
+                field.setAccessible(true);
+                Object value=field.get(model);
+                Bind bindAnnotation=field.getAnnotation(Bind.class);
+                int[] idsComponents= bindAnnotation.to();
+                Class[] componentsTypes= bindAnnotation.type();
+                int index=0;
+                for(int id:idsComponents){
+
+                    View view=findViewById(id, componentsTypes[index]);
+                    if(bindAnnotation.skipAutoBinding()){ binding(view,beforeBinding(view,value));}
+                    else{
+                        internalBinding(view, value);
+                    }
+                    afterBinding(view,value);
+                    index++;
+                }
+            }
+        } catch (IllegalAccessException e) {
+
+        e.printStackTrace();
+    }
+
 
     };
+
+    /**
+     * this method
+     * map model on ui
+     * right now it support
+     * TextView
+     * ImageView
+     * ImageButton
+     *
+     * @param view
+     * @param value
+     */
+    private  void internalBinding(View view,Object value){
+
+        if(view instanceof  TextView ){ ((TextView)view).setText((CharSequence) value);}
+
+        if(view instanceof  ImageView){
+
+             if(value instanceof  Integer){   ((ImageView)view).setImageResource((Integer) value); }
+             if(value instanceof RequestCreator){ ((RequestCreator) value).into((ImageView) view); }
+        }
+
+        if(view instanceof  ImageButton){
+
+            if(value instanceof  String){   ((ImageButton)view).setImageResource((Integer) value); }
+            if(value instanceof RequestCreator){  ((RequestCreator) value).into((ImageButton) view) ;}
+        }
+
+    }
+
+    protected Object beforeBinding(View view,Object value){ return value;}
+
+    protected  void binding(View view,Object value){}
+
+
+    protected void afterBinding(View view,Object value){}
 
     /**setting events on ui components**/
     protected void setEventsHandlers(){}
@@ -120,7 +223,6 @@ public  abstract class HolderBuilder<E> {
      * usefull class for retrieve without reinflating components
      */
     private static class ViewComponentsHolder{
-
 
         private HashMap<Integer,View> mTextViewList=new HashMap<>();
         private HashMap<Integer,View> mButtonViewList=new HashMap<>();

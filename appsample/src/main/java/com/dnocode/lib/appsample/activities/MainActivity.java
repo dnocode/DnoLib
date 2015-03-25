@@ -1,6 +1,5 @@
 package com.dnocode.lib.appsample.activities;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -18,17 +17,11 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
         mMainContainer=new LinearLayout(this);
-
         addLink(HolderPatternActivity.class);
-
         setContentView(mMainContainer);
 
     }
-
-
-
 
 
     private void addLink(Class target){
@@ -42,9 +35,6 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         mMainContainer.addView(btn);
 
     }
-
-
-
 
 
 
