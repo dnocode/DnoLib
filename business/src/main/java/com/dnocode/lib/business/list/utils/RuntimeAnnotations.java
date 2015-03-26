@@ -3,8 +3,8 @@ package com.dnocode.lib.business.list.utils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author dino
@@ -18,7 +18,7 @@ public class RuntimeAnnotations {
     /** annotations choosen**/
     private Class<Annotation>[] mTargetAnnotations;
     /** annotations retrieved **/ /** /todo tofix**/
-    private ArrayList<Annotation> mAnnotationsResult;
+   /* private ArrayList<Annotation> mAnnotationsResult;*/
     /** hold in memory hash map  classname=>annotationName=>fields **/
     private  HashMap<String,HashMap<String, ArrayList<Field>>> mAnnotationsPool =new HashMap<>();
 
@@ -45,7 +45,7 @@ public class RuntimeAnnotations {
 
         mSourceClass=clazz;
         String rootKey=clazz.getSimpleName();
-        mAnnotationsResult=new ArrayList();
+
         Annotation[] annotations;
         ArrayList<Class<Annotation>> annotationsGotInMemory=new ArrayList<>();
         /**try to get it from memory**/
@@ -57,52 +57,45 @@ public class RuntimeAnnotations {
         annotationMap=annotationMap==null?mAnnotationsPool.get(rootKey):annotationMap;
 
         /**if no class target is indicated get  all class in memory **/
-        int counter=mTargetAnnotations.length==0?annotationMap.size():mTargetAnnotations.length;
+        List<Class<Annotation>> notFoundInMemory=new ArrayList<>();
 
-         String [] annotationInMemory=annotationMap.keySet().toArray(new String[]{});
+        for(Class<Annotation> targetAnnotationClass : mTargetAnnotations){
 
-            for (int i=0;i<counter;i++){
+            if(!annotationMap.containsKey(targetAnnotationClass.getSimpleName())){
 
-                /**gets field about that annotation**/
-
-                String key=mTargetAnnotations.length==0?annotationInMemory[i]:mTargetAnnotations[i].getSimpleName();
-
-                ArrayList<Field> fieldsReferenceList=annotationMap.get(key);
-
-                if(fieldsReferenceList!=null) {
-
-                    if(mTargetAnnotations.length!=0)
-                    annotationsGotInMemory.add(mTargetAnnotations[i]);
-
-                    for (Field fieldInMemory : fieldsReferenceList) {
-
-                        mAnnotationsResult.addAll(Arrays.asList( fieldInMemory.getAnnotations()));
-                    }
-                }
+                notFoundInMemory.add(targetAnnotationClass);
             }
+        }
 
-        if(annotationsGotInMemory!=null&&annotationsGotInMemory.size()==mTargetAnnotations.length){return INSTANCE;}
-        /**if annotation got in memory === targer return **/
+        if(notFoundInMemory.size()==0){return INSTANCE;}
+
+        mTargetAnnotations=notFoundInMemory.toArray(new Class[0]);
+
+
         for(Field field : clazz.getDeclaredFields()){
 
             annotations=field.getDeclaredAnnotations();
             /**loop fields annotations**/
                 for(Annotation a :annotations){
+
                     boolean isValid=false;
+
                     if(mTargetAnnotations.length>0) {
                     /** filter **/
                     for (Class<Annotation> aClass : mTargetAnnotations) {
 
                          if(a.annotationType()==aClass&&
+
                            annotationsGotInMemory.contains(aClass)==false){
+
                            isValid=true;
                           break;
                       }
                     }
+
                      if(isValid==false){continue;}
                     }
 
-                    mAnnotationsResult.add(a);
 
                     String annotationKey= a.annotationType().getSimpleName();
                     HashMap<String,ArrayList<Field>> annotationMapReference= mAnnotationsPool.get(rootKey);
@@ -118,8 +111,44 @@ public class RuntimeAnnotations {
 
     }
 
+
+
     /**pull out all annotations**/
-    public <E extends  Annotation> ArrayList<E> pullOutAnnotations(){  return (ArrayList<E>) mAnnotationsResult;}
+    public <E extends  Annotation> ArrayList<E> pullOutAnnotations(){
+
+        ArrayList<Annotation> resultAnnotations=new ArrayList<>();
+
+        HashMap<String, ArrayList<Field>> annotationFieldsMap = mAnnotationsPool.containsKey(mSourceClass.getSimpleName()) ?
+
+        mAnnotationsPool.get(mSourceClass.getSimpleName()) :
+
+        null;
+
+        if(annotationFieldsMap==null){return  null;}
+
+            for( ArrayList<Field> fields :annotationFieldsMap.values()){
+
+                 for (Field f : fields){
+
+                     if(mTargetAnnotations.length>0){
+
+                         for(Class<Annotation> targetAnnotationClass : mTargetAnnotations){
+
+                             resultAnnotations.add(f.getAnnotation(targetAnnotationClass));
+                         }
+
+                     }else {
+                             resultAnnotations.addAll(filterAnnotations(f.getAnnotations()));
+                     }
+
+                 }
+            }
+
+        return (ArrayList<E>) resultAnnotations;
+
+       }
+
+
 
     /**
      *
@@ -151,6 +180,36 @@ public class RuntimeAnnotations {
         }
         mAnnotationsPool.clear();
     }
+
+
+
+    /**meta methods**/
+    /**return an array with the annotations filtered**/
+    private List<Annotation> filterAnnotations(Annotation... annotations){
+
+        List<Annotation> allowed=new ArrayList<>();
+
+        for (Annotation annotation:annotations) {
+
+            if(checkIfAnnotationIsAllowed(annotation)){allowed.add(annotation);}
+        }
+
+        return allowed;
+    }
+
+    /**check if the annotation is among those target**/
+    private boolean checkIfAnnotationIsAllowed(Annotation annotation){
+
+        if(mTargetAnnotations.length==0) {return true;}
+        /** filter **/
+        for (Class<Annotation> aClass : mTargetAnnotations) {
+
+            if(annotation.annotationType()==aClass){ return true;}
+        }
+        return false;
+    }
+
+
 
 }
 

@@ -13,19 +13,18 @@ public class Keep{
 
     public static Keep alive() { return INSTANCE;  }
 
-
     public  boolean it(String key,Object obj) {
 
         ArrayList<Object> list= mObjectsHolder.containsKey(key)?mObjectsHolder.get(key):
                                 mObjectsHolder.put(key,new ArrayList());
+
         return list.add(obj);
 
     }
 
+
     public  <E extends ArrayList> E read(String key) {
-
         return  mObjectsHolder.get(key)!=null?(E)mObjectsHolder.get(key):null;
-
     }
 
     public void unload(String ... keys){

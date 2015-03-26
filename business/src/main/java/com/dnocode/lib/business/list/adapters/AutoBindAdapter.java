@@ -1,23 +1,24 @@
-package com.dnocode.lib.business.list.utils;
+package com.dnocode.lib.business.list.adapters;
 
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.dnocode.lib.business.list.annotations.Bind;
+import com.dnocode.lib.business.list.utils.RuntimeAnnotations;
 import com.squareup.picasso.RequestCreator;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author  dino
@@ -25,9 +26,10 @@ import java.util.HashMap;
  * View holder pattern
  * @param <E>
  */
-public  abstract class HolderBuilder<E> {
+public   class AutoBindAdapter<E> extends BaseAdapter{
 
-    private final static int COMPONENTS_KEY=1001;
+    protected ArrayList<E> mDataSource;
+    protected int mLayoutResource;
     protected ViewComponentsHolder mHolder;
     protected E mModel;
     protected  HashMap<Integer,Object> mParameters;
@@ -35,13 +37,40 @@ public  abstract class HolderBuilder<E> {
     private View mLastObject;
     private int  mLastObjectRef;
 
-    public View build(ViewGroup parent,View view,E model,HashMap<Integer,Object> ... parameters)  {return this.build(parent,view,model,-1,parameters);}
+    public AutoBindAdapter(ArrayList<E> dataSource,int layoutResource){
 
-     public View build(ViewGroup parent,View view,E model,int layoutResource,HashMap<Integer,Object> ... parameters)  {
+        this.mLayoutResource=layoutResource;
+        this.mDataSource=  dataSource;
+    }
+
+    @Override
+    public int getCount() {
+        return mDataSource.size();
+    }
+
+    @Override
+    public E getItem(int position) {
+        return mDataSource.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+
+       return build(parent,convertView,mDataSource.get(position));
+
+    }
+
+
+    protected View build(ViewGroup parent,View view,E model,HashMap<Integer,Object> ... parameters)  {
          try {
              mContext=parent.getContext();
              /** get view if doesn`t exist**/
-             view=view == null? createView(parent,layoutResource):view;
+             view=view == null? createView(parent,mLayoutResource):view;
              /**check if there is a tag**/
              boolean isTagged=view.getTag()!=null;
              /**if wasn`t already tagged instance static view otherwise get view from tag**/
@@ -82,11 +111,8 @@ public  abstract class HolderBuilder<E> {
         boolean  clazzWasAnnoted=false;
 
         for(Annotation bAnnotation : annotations){
-
             if(bAnnotation instanceof Bind){
-
                 int ids[]=((Bind) bAnnotation).to();
-
                 clazzWasAnnoted=true;
 
                 for(int id :ids){
@@ -99,17 +125,12 @@ public  abstract class HolderBuilder<E> {
         if(!clazzWasAnnoted) {
 
             for (int i = 0; i < view.getChildCount(); i++) {
-
                 View child = view.getChildAt(i);
-
                 if (child instanceof ViewGroup) {
-
                     if (((ViewGroup) child).getChildCount() > 0) {
-
                         bindHolderToView(holder, view);
                     }
                 }
-
                 holder.takeIt(child);
             }
 
@@ -134,6 +155,7 @@ public  abstract class HolderBuilder<E> {
     protected View createView(ViewGroup parent,int layoutResource){
 
         LayoutInflater  mInflater = (LayoutInflater) parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
         return mInflater.inflate(layoutResource, parent, false);
     }
 
@@ -151,7 +173,6 @@ public  abstract class HolderBuilder<E> {
         try {
 
             for (Field field : annotatedFields) {
-
                 field.setAccessible(true);
                 Object value=field.get(model);
                 Bind bindAnnotation=field.getAnnotation(Bind.class);
@@ -159,7 +180,6 @@ public  abstract class HolderBuilder<E> {
                 Class[] componentsTypes= bindAnnotation.type();
                 int index=0;
                 for(int id:idsComponents){
-
                     View view=findViewById(id, componentsTypes[index]);
                     if(bindAnnotation.skipAutoBinding()){ binding(view,beforeBinding(view,value));}
                     else{
@@ -170,10 +190,8 @@ public  abstract class HolderBuilder<E> {
                 }
             }
         } catch (IllegalAccessException e) {
-
         e.printStackTrace();
     }
-
 
     };
 
@@ -190,24 +208,42 @@ public  abstract class HolderBuilder<E> {
      */
     private  void internalBinding(View view,Object value){
 
-        if(view instanceof  TextView ){ ((TextView)view).setText((CharSequence) value);}
-
+        if(view instanceof  TextView ){ ((TextView)view).setText((CharSequence) value);}else
         if(view instanceof  ImageView){
-
-             if(value instanceof  Integer){   ((ImageView)view).setImageResource((Integer) value); }
+              if(value instanceof  Integer){   ((ImageView)view).setImageResource((Integer) value); }
              if(value instanceof RequestCreator){ ((RequestCreator) value).into((ImageView) view); }
-        }
+        }else
 
         if(view instanceof  ImageButton){
 
             if(value instanceof  String){   ((ImageButton)view).setImageResource((Integer) value); }
             if(value instanceof RequestCreator){  ((RequestCreator) value).into((ImageButton) view) ;}
+
+        }else{
+
+            binding(view,value);
+
         }
 
     }
 
+    /**
+     * override this method
+     * if wants to make some modification at some value
+     * before to binding with the view
+     * @param view
+     * @param value
+     * @return
+     */
     protected Object beforeBinding(View view,Object value){ return value;}
 
+    /**
+     * this method is called if the field is annotated with skipauto binding
+     * or if insiede internal binding method is not defined how to bind
+     * that value in view
+     * @param view
+     * @param value
+     */
     protected  void binding(View view,Object value){}
 
 
@@ -231,8 +267,6 @@ public  abstract class HolderBuilder<E> {
         private HashMap<Integer,View> mGenericViewList=new HashMap<>();
 
         public  ViewComponentsHolder(){}
-
-
         /**
          * put components in hashmap list
          * key id
@@ -278,7 +312,6 @@ public  abstract class HolderBuilder<E> {
             if(type==ImageView.class){ hashReference=mImageViewList; }
             return (T)hashReference.get(id);
         }
-
 
     }
 
