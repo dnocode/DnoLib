@@ -12,16 +12,14 @@ import java.util.ArrayList;
 
 public class CarouselActivity extends ActionBarActivity {
 
-    AutoBindingListView mListView;
 
-    ArrayList<Example> mList=new ArrayList<Example>();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_holder_pattern);
+        setContentView(R.layout.activity_carousel_pattern);
 
 
 

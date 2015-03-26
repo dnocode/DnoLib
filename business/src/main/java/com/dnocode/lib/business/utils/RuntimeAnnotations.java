@@ -1,4 +1,4 @@
-package com.dnocode.lib.business.list.utils;
+package com.dnocode.lib.business.utils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

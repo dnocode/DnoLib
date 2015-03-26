@@ -17,6 +17,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.HolderPatternActivity"></activity>
+        <activity android:name=".activities.CarouselActivity"></activity>
     </application>
 
 </manifest>

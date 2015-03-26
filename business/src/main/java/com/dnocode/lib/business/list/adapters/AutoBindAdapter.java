@@ -11,14 +11,13 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.dnocode.lib.business.list.annotations.Bind;
-import com.dnocode.lib.business.list.utils.RuntimeAnnotations;
+import com.dnocode.lib.business.utils.RuntimeAnnotations;
 import com.squareup.picasso.RequestCreator;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * @author  dino
