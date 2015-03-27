@@ -1,20 +1,31 @@
 package com.dnocode.lib.business.ext.carousel;
 
+import com.squareup.picasso.Transformation;
+
 import java.io.Serializable;
 
+/**
+ * simple class
+ * rappresents an image in
+ * carousel
+ * uri  url if need to dowload the image from remote
+ * errorRef  resource id to show if loading fail
+ * height height of imageview
+ *
+ */
 public final class Photo  implements Serializable
     {
 
-        private static final long serialVersionUID = 1L;
+        String uri;
+        Integer drawableRef=null;
+        Integer errorRef=null;
+        boolean sizing=false;
+        Transformation trasformation;
 
-        public final String name;
 
-        public final String image;
+        public Photo(String photoUri){  this.uri=photoUri;}
 
-        public Photo(String name, String image)
-        {
-            this.name = name;
-            this.image = image;
-        }
+        public Photo(int drawableRefId){ this.drawableRef=drawableRefId;}
+
 
     }
