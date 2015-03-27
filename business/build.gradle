@@ -18,10 +18,26 @@ android {
         }
     }
 }
+version '0.1'
+group 'com.dnocode.lib'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.0.0'
+
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'fr.rolandl:carousel:1.0.1@aar'
 }
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file://${System.env.HOME}/Dropbox/repoGlance/")
+            pom.packaging='aar'
+        }
+    }}
