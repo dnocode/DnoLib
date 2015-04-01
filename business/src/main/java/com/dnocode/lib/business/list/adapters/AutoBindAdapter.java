@@ -259,11 +259,11 @@ public   class AutoBindAdapter<E> extends BaseAdapter{
      */
     private static class ViewComponentsHolder{
 
-        private HashMap<Integer,View> mTextViewList=new HashMap<>();
-        private HashMap<Integer,View> mButtonViewList=new HashMap<>();
-        private HashMap<Integer,View> mPanelViewList=new HashMap<>();
-        private HashMap<Integer,View> mImageViewList=new HashMap<>();
-        private HashMap<Integer,View> mGenericViewList=new HashMap<>();
+        private HashMap<Integer,View> mTextViewList=new HashMap<Integer,View>();
+        private HashMap<Integer,View> mButtonViewList=new HashMap<Integer,View>();
+        private HashMap<Integer,View> mPanelViewList=new HashMap<Integer,View>();
+        private HashMap<Integer,View> mImageViewList=new HashMap<Integer,View>();
+        private HashMap<Integer,View> mGenericViewList=new HashMap<Integer,View>();
 
         public  ViewComponentsHolder(){}
         /**

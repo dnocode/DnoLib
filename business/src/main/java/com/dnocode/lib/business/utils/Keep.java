@@ -7,7 +7,7 @@ import java.util.HashMap;
 public class Keep{
 
 
-    private HashMap<String, ArrayList<Object>> mObjectsHolder=new HashMap<>();
+    private HashMap<String, ArrayList<Object>> mObjectsHolder=new HashMap();
 
     private static Keep INSTANCE = new Keep();
 

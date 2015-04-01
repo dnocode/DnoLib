@@ -20,7 +20,7 @@ public class RuntimeAnnotations {
     /** annotations retrieved **/ /** /todo tofix**/
    /* private ArrayList<Annotation> mAnnotationsResult;*/
     /** hold in memory hash map  classname=>annotationName=>fields **/
-    private  HashMap<String,HashMap<String, ArrayList<Field>>> mAnnotationsPool =new HashMap<>();
+    private  HashMap<String,HashMap<String, ArrayList<Field>>> mAnnotationsPool =new HashMap();
 
     private static RuntimeAnnotations INSTANCE = new RuntimeAnnotations();
 
@@ -47,7 +47,7 @@ public class RuntimeAnnotations {
         String rootKey=clazz.getSimpleName();
 
         Annotation[] annotations;
-        ArrayList<Class<Annotation>> annotationsGotInMemory=new ArrayList<>();
+        ArrayList<Class<Annotation>> annotationsGotInMemory=new ArrayList();
         /**try to get it from memory**/
         /** get or init**/
         HashMap<String,ArrayList<Field>> annotationMap= mAnnotationsPool.containsKey(rootKey)?
@@ -57,7 +57,7 @@ public class RuntimeAnnotations {
         annotationMap=annotationMap==null?mAnnotationsPool.get(rootKey):annotationMap;
 
         /**if no class target is indicated get  all class in memory **/
-        List<Class<Annotation>> notFoundInMemory=new ArrayList<>();
+        List<Class<Annotation>> notFoundInMemory=new ArrayList();
 
         for(Class<Annotation> targetAnnotationClass : mTargetAnnotations){
 
@@ -116,7 +116,7 @@ public class RuntimeAnnotations {
     /**pull out all annotations**/
     public <E extends  Annotation> ArrayList<E> pullOutAnnotations(){
 
-        ArrayList<Annotation> resultAnnotations=new ArrayList<>();
+        ArrayList<Annotation> resultAnnotations=new ArrayList();
 
         HashMap<String, ArrayList<Field>> annotationFieldsMap = mAnnotationsPool.containsKey(mSourceClass.getSimpleName()) ?
 
@@ -158,7 +158,7 @@ public class RuntimeAnnotations {
 
         if(!mAnnotationsPool.containsKey(mSourceClass.getSimpleName())){return null;}
 
-        ArrayList<Field> fields=new ArrayList<>();
+        ArrayList<Field> fields=new ArrayList();
 
         HashMap<String,ArrayList<Field>> annotationsFieldMap= mAnnotationsPool.get(mSourceClass.getSimpleName());
 
@@ -187,7 +187,7 @@ public class RuntimeAnnotations {
     /**return an array with the annotations filtered**/
     private List<Annotation> filterAnnotations(Annotation... annotations){
 
-        List<Annotation> allowed=new ArrayList<>();
+        List<Annotation> allowed=new ArrayList();
 
         for (Annotation annotation:annotations) {
 

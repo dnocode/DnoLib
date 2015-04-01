@@ -34,14 +34,14 @@ public class CarouselActivity extends ActionBarActivity {
         mCarousel = (Carousel) findViewById(R.id.carouselView);
         mCarousel2 = (Carousel) findViewById(R.id.carouselView2);
 
-        final List<Photo> photos1 = new ArrayList<>();
+        final List<Photo> photos1 = new ArrayList<Photo>();
         photos1.add(new Photo(R.drawable.record));
         photos1.add(new Photo(R.drawable.recycle_bin));
         photos1.add(new Photo(R.drawable.refresh));
         photos1.add(new Photo(R.drawable.rewind));
         photos1.add(new Photo(R.drawable.attachment));
 
-        final List<Photo> photos2 = new ArrayList<>();
+        final List<Photo> photos2 = new ArrayList<Photo>();
 
 
 

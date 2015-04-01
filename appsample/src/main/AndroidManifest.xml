@@ -19,6 +19,8 @@
         </activity>
         <activity android:name=".activities.HolderPatternActivity"></activity>
         <activity android:name=".activities.CarouselActivity"></activity>
+        <activity android:name=".activities.BrowseCardActivity"></activity>
+        <activity android:name=".activities.CustomViewActivity"></activity>
     </application>
 
 </manifest>

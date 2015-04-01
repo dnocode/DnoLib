@@ -1,35 +1,40 @@
 package com.dnocode.lib.widgets;
 
+import android.animation.Animator;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.animation.Animation;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-
-import com.dnocode.lib.business.ext.picasso.PicassoRoundTransform;
+import com.dnocode.lib.business.ext.picasso.CircleTransform;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Transformation;
 
 import java.io.IOException;
-
-
 
 /**
  * Created by dino on 23/03/15.
  */
-public class BrowseCardsView  extends FrameLayout{
+public class BrowseCardsView  extends FrameLayout implements View.OnClickListener{
 
-    int mTranformationRadius=-1;
-    int mTransformationMargin=-1;
+
+    int errorResource=R.mipmap.ic_launcher;
+    //overlapping size
     int mMarginUncovered=10;
+    //default card width
     int mCardheight=60;
+    //default card height
     int mCardWidth=60;
+    //overlapping side
     boolean mBrowseLeft=true;
-
-
+    boolean mCircularTransformation=true;
+    Transformation mTransformation=null;
 
 
     public BrowseCardsView(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -43,26 +48,23 @@ public class BrowseCardsView  extends FrameLayout{
          mMarginUncovered= (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,mMarginUncovered,context.getResources().getDisplayMetrics());
          mCardheight=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,mCardheight,context.getResources().getDisplayMetrics());
          mCardWidth=(int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,mCardWidth,context.getResources().getDisplayMetrics());
+
+        setOnClickListener(this);
     }
 
     public void addCard(String url) throws IOException {
 
 
-
         FrameLayout.LayoutParams lp=new LayoutParams(mCardWidth, mCardheight);
 
-        ImageView iv=new ImageView(getContext());
+        final ImageView iv=new ImageView(getContext());
 
         iv.setScaleType(ImageView.ScaleType.FIT_XY);
 
         iv.setLayoutParams(lp);
 
-
-        if(mBrowseLeft){
-
-            lp.leftMargin=getChildCount()*mMarginUncovered;
-
-        }else{
+        if(mBrowseLeft){  lp.leftMargin=getChildCount()*mMarginUncovered; }
+         else{
 
             int newSize=getChildCount();
 
@@ -72,29 +74,18 @@ public class BrowseCardsView  extends FrameLayout{
 
                 newSize--;
             }
-
-            //lp.leftMargin=newSize*mMarginUncovered;
-
         }
 
         addView(iv);
 
-
-        RequestCreator rc= Picasso.with(getContext()).load(url).error(R.mipmap.ic_launcher);
-
-        boolean wantsTransformation=mTranformationRadius!=-1&&mTranformationRadius!=-1;
-
-        if(wantsTransformation) rc.transform(new PicassoRoundTransform(mTranformationRadius,mTransformationMargin));
+        RequestCreator rc= Picasso.with(getContext()).load(url).error(errorResource);
+        if(mCircularTransformation){mTransformation=new CircleTransform();}
+        if(mTransformation!=null) rc.transform(mTransformation);
 
         rc.into(iv);
     }
 
 
-    public void applyTransformation(final int radius, final int margin){
-
-        this.mTranformationRadius=radius;
-        this.mTransformationMargin=margin;
-    }
 
 
     @Override
@@ -109,9 +100,8 @@ public class BrowseCardsView  extends FrameLayout{
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         Log.i("DINO","onMeasure mode"+  MeasureSpec.getMode(widthMeasureSpec));
         Log.i("DINO","onMeasure size"+     MeasureSpec.getSize(widthMeasureSpec));
-
-
        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
     }
 
     @Override
@@ -121,9 +111,45 @@ public class BrowseCardsView  extends FrameLayout{
     }
 
 
+    @Override
+    public void onClick(View v) {
 
 
-    public static class PipeAnimation extends Animation {
+        if(getChildCount()>0){
+
+            View view=getChildAt(getChildCount()-1);
+
+
+            getLayoutParams().width=mCardWidth*2;
+
+            view.animate().translationX(mCardWidth-mMarginUncovered)
+                    .setDuration(500)
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+
+
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+
+invalidate();
+                        }
+
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animator animation) {
+
+                        }
+                    }).start();
+
+
+        }
 
     }
 }

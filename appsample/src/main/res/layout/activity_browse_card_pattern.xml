@@ -1,0 +1,19 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+
+
+    <com.dnocode.lib.widgets.BrowseCardsView
+        android:id="@+id/browseCardsView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+
+    </com.dnocode.lib.widgets.BrowseCardsView>
+    
+
+
+</LinearLayout>

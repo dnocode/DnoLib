@@ -21,6 +21,8 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         mMainContainer.setOrientation(LinearLayout.VERTICAL);
         addLink(HolderPatternActivity.class);
         addLink(CarouselActivity.class);
+        addLink(BrowseCardActivity.class);
+        addLink(CustomViewActivity.class);
         setContentView(mMainContainer);
 
     }
