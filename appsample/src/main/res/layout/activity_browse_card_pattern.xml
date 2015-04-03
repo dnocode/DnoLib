@@ -6,13 +6,13 @@
     android:padding="10dp">
 
 
-    <com.dnocode.lib.widgets.BrowseCardsView
+    <com.dnocode.lib.widgets.images.BrowseCardsView
         android:id="@+id/browseCardsView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
 
-    </com.dnocode.lib.widgets.BrowseCardsView>
+    </com.dnocode.lib.widgets.images.BrowseCardsView>
     
 
 

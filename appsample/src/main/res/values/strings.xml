@@ -3,4 +3,14 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+
+    <string-array name="images_uri">
+
+    <item>http://resources1.news.com.au/images/2011/07/22/1226099/494485-diving-funny-faces.jpg </item>
+        <item> http://resources1.news.com.au/images/2011/07/22/1226099/493997-diving-funny-faces.jpg</item>
+        <item> http://resources3.news.com.au/images/2011/07/22/1226099/493735-diving-funny-faces.jpg</item>
+        <item > http://resources1.news.com.au/images/2011/07/22/1226099/494461-diving-funny-faces.jpg</item>
+
+    </string-array>
 </resources>

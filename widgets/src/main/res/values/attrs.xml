@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <attr name="shapeColor" format="color" />
-    <attr name="displayShapeName" format="boolean" />
+    <attr name="transform" format="enum">
+        <enum name="empty" value="0"/>
+        <enum name="circle" value="0"/>
+        <enum name="square" value="1"/>
+    </attr>
 
-   <declare-styleable name="ShapeSelectorView">
-       <attr name="shapeColor"/>
-       <attr name="displayShapeName"/>
+    <attr name="drawableError" format="integer"/>
+    <attr name="imagesEntries" format="reference" />
+
+   <declare-styleable name="SingleSlideView">
+       <attr name="android:duration"/>
+       <attr name="imagesEntries"/>
+       <attr name="transform"/>
+       <attr name="drawableError"/>
    </declare-styleable>
 
 </resources>

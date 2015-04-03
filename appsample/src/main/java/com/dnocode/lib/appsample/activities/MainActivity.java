@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
-
 public class MainActivity extends ActionBarActivity  implements View.OnClickListener{
 
     private LinearLayout mMainContainer;
@@ -22,11 +21,9 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         addLink(HolderPatternActivity.class);
         addLink(CarouselActivity.class);
         addLink(BrowseCardActivity.class);
-        addLink(CustomViewActivity.class);
+        addLink(SingleFadeImageActivity.class);
         setContentView(mMainContainer);
-
-    }
-
+   }
 
     private void addLink(Class target){
 
@@ -40,12 +37,8 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
 
     }
 
-
-
     @Override
     public void onClick(View v) {
-
-
         Intent i=new Intent(this, (Class<?>) v.getTag());
         this.startActivity(i);
     }

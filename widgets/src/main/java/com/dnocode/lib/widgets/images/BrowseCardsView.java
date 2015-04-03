@@ -1,4 +1,4 @@
-package com.dnocode.lib.widgets;
+package com.dnocode.lib.widgets.images;
 
 import android.animation.Animator;
 import android.content.Context;
@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import com.dnocode.lib.business.ext.picasso.CircleTransform;
+import com.dnocode.lib.widgets.R;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
@@ -19,12 +20,12 @@ import com.squareup.picasso.Transformation;
 import java.io.IOException;
 
 /**
- * Created by dino on 23/03/15.
+ * component that browse images as cards deck
  */
 public class BrowseCardsView  extends FrameLayout implements View.OnClickListener{
 
 
-    int errorResource=R.mipmap.ic_launcher;
+    int errorResource= R.mipmap.ic_launcher;
     //overlapping size
     int mMarginUncovered=10;
     //default card width

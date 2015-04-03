@@ -2,20 +2,17 @@ package com.dnocode.lib.appsample.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ListView;
 
 import com.dnocode.lib.appsample.R;
 import com.dnocode.lib.appsample.models.Example;
 import com.dnocode.lib.business.list.adapters.AutoBindAdapter;
-import com.dnocode.lib.widgets.AutoBindingListView;
 
 import java.util.ArrayList;
 
 public class HolderPatternActivity extends ActionBarActivity {
 
-    AutoBindingListView mListView;
+    ListView mListView;
 
     ArrayList<Example> mList=new ArrayList<Example>();
 
@@ -26,7 +23,7 @@ public class HolderPatternActivity extends ActionBarActivity {
 
         setContentView(R.layout.activity_holder_pattern);
 
-        mListView= (AutoBindingListView) findViewById(R.id.listview_example);
+        mListView= (ListView) findViewById(R.id.listview_example);
         mList.add(new Example("primo",R.drawable.record));
         mList.add(new Example("secondo",R.drawable.recycle_bin));
         mList.add(new Example("terzo",R.drawable.address_book));

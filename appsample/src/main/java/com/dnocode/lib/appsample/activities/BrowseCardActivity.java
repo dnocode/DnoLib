@@ -2,21 +2,11 @@ package com.dnocode.lib.appsample.activities;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.view.View;
-import android.widget.ImageView;
 
 import com.dnocode.lib.appsample.R;
-import com.dnocode.lib.business.ext.carousel.Photo;
-import com.dnocode.lib.business.ext.carousel.PhotoCarouselAdapter;
-import com.dnocode.lib.business.ext.picasso.CircleTransform;
-import com.dnocode.lib.widgets.BrowseCardsView;
-import com.squareup.picasso.Transformation;
+import com.dnocode.lib.widgets.images.BrowseCardsView;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.rolandl.carousel.Carousel;
 
 public class BrowseCardActivity extends ActionBarActivity {
 
