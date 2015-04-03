@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.dnocode.lib.business.utility.Teacher;
+
 public class MainActivity extends ActionBarActivity  implements View.OnClickListener{
 
     private LinearLayout mMainContainer;
@@ -23,6 +25,8 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         addLink(BrowseCardActivity.class);
         addLink(SingleFadeImageActivity.class);
         setContentView(mMainContainer);
+
+        Teacher.addLesson(this).card(new View(this));
    }
 
     private void addLink(Class target){
