@@ -12,6 +12,7 @@ import com.dnocode.lib.business.utility.Teacher;
 
 public class MainActivity extends ActionBarActivity  implements View.OnClickListener{
 
+    private final int sLessonCardId=32323;
     private LinearLayout mMainContainer;
 
     @Override
@@ -26,7 +27,16 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         addLink(SingleFadeImageActivity.class);
         setContentView(mMainContainer);
 
-        Teacher.addLesson(this).card(new View(this));
+                Teacher.instance(this)
+                .addLessonCard("prova", "descrizione", -1, "red")
+                .showOnActivityStart(SingleFadeImageActivity.class)
+                .addDependency(CarouselActivity.class);
+
+                Teacher.instance(this)
+                .addLessonCard("seconda lezione", "descrizione", -1, "black").executeFor(3)
+                .showOnActivityStart(CarouselActivity.class);
+
+
    }
 
     private void addLink(Class target){
