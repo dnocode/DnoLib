@@ -14,6 +14,7 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
 
     private final int sLessonCardId=32323;
     private LinearLayout mMainContainer;
+    public static boolean holderActivityLessonCondition=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +29,19 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         setContentView(mMainContainer);
 
 
+        /** implementation multi view on the same activity
+         * with condition
+         */
+        Teacher.LessonArgs[]  lessonsSameOnSameView=new Teacher.LessonArgs[2];
+        lessonsSameOnSameView[0]=new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black");
+        lessonsSameOnSameView[1]=new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide2", "green", new Teacher.LessonCardViewVisibilityCondition() {
+            @Override
+            public boolean visibilityIsAllowed() {
+                return holderActivityLessonCondition;
+            }
+        });
+
+
         if(Teacher.instance(this).areLessonsLearned()==false) {
 
                     Teacher.instance(this)
@@ -35,8 +49,8 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
                     .showOnActivityStart(SingleFadeImageActivity.class)
                     .addDependency(CarouselActivity.class);
 
-                     Teacher.instance(this)
-                    .addLessonCard(new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black"))
+                    Teacher.instance(this)
+                    .addLessonCard(lessonsSameOnSameView)
                     .showOnActivityStart(CarouselActivity.class).printLog();
 
         }

@@ -3,6 +3,7 @@ package com.dnocode.lib.appsample.activities;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import com.dnocode.lib.appsample.R;
@@ -20,6 +21,7 @@ public class CarouselActivity extends ActionBarActivity {
 
     Carousel mCarousel;
     Carousel mCarousel2;
+    Button mActivateTutorialCondition;
     String baseUrl="http://resources1.news.com.au/images/2011/07/22/1226099/494485-diving-funny-faces.jpg";
     long firstId=100006032921701l;
 
@@ -33,7 +35,7 @@ public class CarouselActivity extends ActionBarActivity {
         setContentView(R.layout.activity_carousel_pattern);
         mCarousel = (Carousel) findViewById(R.id.carouselView);
         mCarousel2 = (Carousel) findViewById(R.id.carouselView2);
-
+        mActivateTutorialCondition=(Button)findViewById(R.id.activeTutorialCondition);
         final List<Photo> photos1 = new ArrayList<Photo>();
         photos1.add(new Photo(R.drawable.record));
         photos1.add(new Photo(R.drawable.recycle_bin));
@@ -91,6 +93,16 @@ public class CarouselActivity extends ActionBarActivity {
 
         pca.notifyDataSetChanged();
         pca2.notifyDataSetChanged();
+
+
+        mActivateTutorialCondition.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                MainActivity.holderActivityLessonCondition=true;
+                mActivateTutorialCondition.setEnabled(false);
+            }
+        });
     }
 
 
