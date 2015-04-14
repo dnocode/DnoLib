@@ -8,8 +8,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.dnocode.lib.business.utility.Teacher;
+
 public class MainActivity extends ActionBarActivity  implements View.OnClickListener{
 
+    private final int sLessonCardId=32323;
     private LinearLayout mMainContainer;
 
     @Override
@@ -23,6 +26,24 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         addLink(BrowseCardActivity.class);
         addLink(SingleFadeImageActivity.class);
         setContentView(mMainContainer);
+
+
+        if(Teacher.instance(this).areLessonsLearned()==false) {
+
+                    Teacher.instance(this)
+                    .addLessonCard(new Teacher.LessonArgs(-1, "SingleFadeImageActivity", "immagine singola scorrevole", "red"))
+                    .showOnActivityStart(SingleFadeImageActivity.class)
+                    .addDependency(CarouselActivity.class);
+
+                     Teacher.instance(this)
+                    .addLessonCard(new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black"))
+                    .showOnActivityStart(CarouselActivity.class).printLog();
+
+        }
+
+
+
+
    }
 
     private void addLink(Class target){

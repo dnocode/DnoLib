@@ -176,7 +176,7 @@ public   class AutoBindAdapter<E> extends BaseAdapter{
                 Object value=field.get(model);
                 Bind bindAnnotation=field.getAnnotation(Bind.class);
                 int[] idsComponents= bindAnnotation.to();
-                Class[] componentsTypes= bindAnnotation.type();
+                Class[] componentsTypes= bindAnnotation.on();
                 int index=0;
                 for(int id:idsComponents){
                     View view=findViewById(id, componentsTypes[index]);
@@ -209,8 +209,9 @@ public   class AutoBindAdapter<E> extends BaseAdapter{
 
         if(view instanceof  TextView ){ ((TextView)view).setText((CharSequence) value);}else
         if(view instanceof  ImageView){
+
               if(value instanceof  Integer){   ((ImageView)view).setImageResource((Integer) value); }
-             if(value instanceof RequestCreator){ ((RequestCreator) value).into((ImageView) view); }
+              if(value instanceof RequestCreator){ ((RequestCreator) value).into((ImageView) view); }
         }else
 
         if(view instanceof  ImageButton){

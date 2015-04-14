@@ -1,3 +1,8 @@
 <resources>
+
     <string name="app_name">Business</string>
+    <item type="id" name="lesson_card_main_wrapper_id" />
+    <item type="id" name="lesson_view_holder" />
+    <item type="id" name="LessonCardDescriptionTextView" />
+    <item type="id" name="lesson_on_click_tag" />
 </resources>

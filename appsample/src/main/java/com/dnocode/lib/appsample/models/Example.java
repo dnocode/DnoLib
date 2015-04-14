@@ -9,10 +9,10 @@ import com.dnocode.lib.business.list.annotations.Bind;
 
 public class Example {
 
-        @Bind(to = R.id.name,type = TextView.class)
+        @Bind(to = R.id.name,on = TextView.class)
         public String name;
 
-        @Bind(to = {R.id.img1,R.id.img2},type ={ImageView.class, ImageButton.class})
+        @Bind(to = {R.id.img1,R.id.img2},on ={ImageView.class, ImageButton.class})
         public int resourceImage;
 
         public Example(String name,int resourceId){
