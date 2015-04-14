@@ -109,6 +109,42 @@ binding method
 ```
 
 -------------------------------------------------------------
+
+
+##Teacher
+Useful component for creating tutorial
+for now its just implements a default tutorial lesson card.
+
+###Characteristics
+* allows to add lesson card view related to activity or button click
+* manage persistence of lesson already learn
+* internal holder pattern
+###Todo
+1. implements view custom layout
+2. when a lesson is set to be repeated more than once, implements possibility  to pass LessonArgs List as arguments
+3. any help   suggestion  is appreciated
+
+
+```
+
+
+ if(Teacher.instance(this).areLessonsLearned()==false) {
+
+
+                    Teacher.instance(this)
+                    .addLessonCard(new Teacher.LessonArgs(-1, "SingleFadeImageActivity", "immagine singola scorrevole", "red"))
+                    .showOnActivityStart(SingleFadeImageActivity.class)
+                    .addDependency(CarouselActivity.class);
+
+                     Teacher.instance(this)
+                    .addLessonCard(new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black"))
+                    .showOnActivityStart(CarouselActivity.class).printLog();
+
+        }
+
+```
+
+
 License
 ----
 
