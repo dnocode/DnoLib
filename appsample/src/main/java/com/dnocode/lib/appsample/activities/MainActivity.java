@@ -27,14 +27,21 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         addLink(SingleFadeImageActivity.class);
         setContentView(mMainContainer);
 
-                Teacher.instance(this)
-                .addLessonCard("prova", "descrizione", -1, "red")
-                .showOnActivityStart(SingleFadeImageActivity.class)
-                .addDependency(CarouselActivity.class);
 
-                Teacher.instance(this)
-                .addLessonCard("seconda lezione", "descrizione", -1, "black").executeFor(3)
-                .showOnActivityStart(CarouselActivity.class);
+        if(Teacher.instance(this).areLessonsLearned()==false) {
+
+                    Teacher.instance(this)
+                    .addLessonCard(new Teacher.LessonArgs(-1, "SingleFadeImageActivity", "immagine singola scorrevole", "red"))
+                    .showOnActivityStart(SingleFadeImageActivity.class)
+                    .addDependency(CarouselActivity.class);
+
+                     Teacher.instance(this)
+                    .addLessonCard(new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black"))
+                    .showOnActivityStart(CarouselActivity.class).printLog();
+
+        }
+
+
 
 
    }

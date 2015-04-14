@@ -16,6 +16,6 @@ import java.lang.annotation.Target;
 public @interface Bind {
     /**components ids  @return*/
     int[] to();
-    Class[] type();
+    Class[] on();
     boolean skipAutoBinding() default  false;
 }

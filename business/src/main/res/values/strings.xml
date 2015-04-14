@@ -1,6 +1,7 @@
 <resources>
-    <string name="app_name">Business</string>
 
-    <item type="id" name="default_lesson_card_Id" />
-    <item type="id" name="main_wrapper_lesson_card_id" />
+    <string name="app_name">Business</string>
+    <item type="id" name="lesson_card_main_wrapper_id" />
+    <item type="id" name="lesson_view_holder" />
+    <item type="id" name="LessonCardDescriptionTextView" />
 </resources>

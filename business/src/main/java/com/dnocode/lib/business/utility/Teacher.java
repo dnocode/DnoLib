@@ -9,42 +9,49 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import com.dnocode.lib.business.R;
-import com.dnocode.lib.business.utils.AppInfo;
-
+import com.dnocode.lib.business.utils.ObjectSerializer;
+import com.google.gson.Gson;
 import java.io.Serializable;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Teacher  {
 
     private static Teacher INSTANCE;
-
     private final static String sTag="Teacher";
-
-    private final static int sHeightDefaultLessonCard =30;
-
+    private final static int sHeightDefaultLessonCard =45;
+    private final static String sStoreKeySourceEventLessonCard="SK_SE_LC";
+    private final static String sStoreKeyLessonCardsViewReferences="SK_LC_VR";
+    private final static String sTutorialComplete="T_C";
     private  Context mCtx = null;
     /** contains lesson view that allows to recycle a view if another card need it*/
     private HashMap<Integer, View> mLessonCardsViewPool;
+    /**contains references counter beetween view and lesson card**/
+    private HashMap<String, Double> mLessonCardsTimesCounter;
+    /**contains  counter beetween lessoncard times to show**/
+    private HashMap<String, Double> mLessonCardsViewReferences;
     /** contains lesson to show linked to component event or activity name as click on button ecc  */
     private HashMap<String, LessonCard> mSourceEventLessonCard;
     private int mLastViewInflatedId=-1;
-
     private TeacherDefaultListener mListener=new TeacherDefaultListener();
+    private Boolean mTutorialComplete=false;
 
-    private Teacher(Context... context) {
-        if (context != null && context.length > 0) {
-            this.mCtx = context[0];
-        }
+    private Teacher(Context context) {
+
+        mCtx=context;
+        deserializeIt();
+
     }
 
     /** create singleton**/
@@ -53,48 +60,87 @@ public class Teacher  {
         return INSTANCE == null ? (INSTANCE = new Teacher(context.length > 0 ? context[0] : null)) : INSTANCE;
     }
 
-    public boolean firstStart(){  return AppInfo.checkAppStart(mCtx)== AppInfo.AppStart.FIRST_TIME;}
     /**
      * add lesson view by resource layout id
      * @param resourceLayout
      */
-    public LessonCard addLessonCard(int resourceLayout,int ... linkId) { return null;}
+    public  <T> LessonCard  addLessonCard(int resourceLayout,T objectArgs,LessonCardViewRecyclerListener<T> listener) {
+        /**if isn`t the first execution for this view check if the references are all consumed if is it exit**/
+
+        //todo
+        return null;
+    }
+
+
+    public boolean areLessonsLearned(){ return this.mTutorialComplete; }
+
 
     /** default card**/
-    public LessonCard addLessonCard(String title, String description, int iconResource,String hexColor) {
+    /**todo possibilita` di passare piu` argomenti e per ogni esecuzione nella stessa view aggiornarli**/
 
-        WindowManager wm = (WindowManager) mCtx.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        int height = size.y;
-        height= (height/100)* sHeightDefaultLessonCard;
+    public LessonCard addLessonCard(LessonArgs args) {
 
-        FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,height);
+        return addLessonCard(args,R.style.TeachActionTextView,R.style.TeachDescriptionTextView);
+    }
 
-        lp.gravity= Gravity.BOTTOM;
+    public LessonCard addLessonCard(LessonArgs args,int actionStyleId,int descStyleId) {
 
-        RelativeLayout lessonView=new RelativeLayout(mCtx);
+        Log.v(sTag,"default lesson card adding");
+        /**if isn`t the first execution for this view check if the references are all consumed if is it exit**/
+        mLessonCardsViewReferences = mLessonCardsViewReferences ==null?new HashMap(): mLessonCardsViewReferences;
+        mLessonCardsTimesCounter = mLessonCardsTimesCounter ==null?new HashMap(): mLessonCardsTimesCounter;
 
-        lessonView.setId(R.id.default_lesson_card_Id);
+        /**check if all lessonCard relate  to this view are showed  if it`s so return empty card **/
+        if(mLessonCardsViewReferences.containsKey(R.layout.default_lesson_card)
+                &&mLessonCardsViewReferences.get(R.layout.default_lesson_card)==0){
 
-        lessonView.setBackgroundColor(Color.parseColor(hexColor));
+            Log.v(sTag,"default lesson card view references == 0 return empty card");
+            return new LessonCard();
+        }
 
-        lessonView.setLayoutParams(lp);
+        RelativeLayout lessonView=null;
+        /**try to retrieve lessonView**/
+        if(mLessonCardsViewPool!=null&&mLessonCardsViewPool.containsKey(R.id.LessonCardId)){
+            Log.v(sTag,"found view in lesson cards pool recycle it ");
+            lessonView= (RelativeLayout) mLessonCardsViewPool.get(R.id.LessonCardId);
+        }
+         DefaultLessonViewHolder lessonViewHolder;
+        /**create lesson view if doesn`t exist**/
+        if(lessonView==null) {
 
-        TextView titleView=new TextView(mCtx);
+            Log.v(sTag,"building new lesson view");
+            WindowManager wm = (WindowManager) mCtx.getSystemService(Context.WINDOW_SERVICE);
+            Display display = wm.getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int height = size.y;
+            height = (height / 100) * sHeightDefaultLessonCard;
+            FrameLayout.LayoutParams mainWrapperLp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
+            mainWrapperLp.gravity = Gravity.BOTTOM;
+            LayoutInflater inflater = (LayoutInflater) mCtx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            lessonView= (RelativeLayout) inflater.inflate(R.layout.default_lesson_card, null);
+            lessonView.setLayoutParams(mainWrapperLp);
+            lessonViewHolder=new DefaultLessonViewHolder();
+            lessonViewHolder.descriptioTextView= (TextView) lessonView.findViewById(R.id.LessonCardDescriptionTextView);
+            lessonViewHolder.actionTextView=(TextView) lessonView.findViewById(R.id.LessonCardActionTextView);
+            lessonViewHolder.iconView=(ImageView) lessonView.findViewById(R.id.LessonCardIcon);
+            lessonViewHolder.closeImageView = (ImageView) lessonView.findViewById(R.id.LessonCardCloseView);
+            lessonViewHolder.actionTextView.setTextAppearance(mCtx,actionStyleId);
+            lessonViewHolder.descriptioTextView.setTextAppearance(mCtx,descStyleId);
+            lessonView.setTag(R.id.lesson_view_holder, lessonViewHolder);
+        }
 
-        titleView.setText(title);
+       return  addLessonCard(lessonView, args , new LessonCardViewRecyclerListener<LessonArgs>() {
+           @Override
+           public void onRecycle(View view, LessonArgs args) {
 
-        TextView descriptionView=new TextView(mCtx);
-
-        descriptionView.setText(title);
-
-        lessonView.addView(titleView);
-
-        lessonView.addView(descriptionView);
-
-       return  addLessonCard(lessonView,false);
+               DefaultLessonViewHolder lessonViewHolder= (DefaultLessonViewHolder) view.getTag(R.id.lesson_view_holder);
+               lessonViewHolder.descriptioTextView.setText(args.descriptionLabel);
+               lessonViewHolder.actionTextView.setText(args.actionLabel);
+               if(args.iconResource!=-1) lessonViewHolder.iconView.setImageResource(args.iconResource);
+               view.setBackgroundColor(Color.parseColor(args.color));
+           }
+       });
 
     }
 
@@ -102,84 +148,38 @@ public class Teacher  {
      * add view to  lessonCardsPool hashmap
      * create  by view_id  -> view or by custom linkid  -> view    *
      * @param view
-     * @param linkId
+     *
      */
-    public LessonCard addLessonCard(View view,boolean isTransient,int ... linkId) {
+    public LessonCard addLessonCard(View view,Object args,LessonCardViewRecyclerListener listener) {
+
+        /**if isn`t the first execution for this view check if the references are all consumed if is it exit**/
+        mLessonCardsViewReferences = mLessonCardsViewReferences ==null?new HashMap(): mLessonCardsViewReferences;
+        if(mLessonCardsViewReferences.containsKey(R.layout.default_lesson_card)&&
+                mLessonCardsViewReferences.get(R.layout.default_lesson_card)==0){  return new LessonCard();}
 
         /**on first card attach listener**/
-        if (mLessonCardsViewPool == null || (mLessonCardsViewPool != null && mLessonCardsViewPool.size() == 0)) {
-
-            ((Application) INSTANCE.mCtx.getApplicationContext()).registerActivityLifecycleCallbacks(mListener);
+        if ( mLessonCardsViewPool == null
+             || (mLessonCardsViewPool != null
+             && mLessonCardsViewPool.size() == 0)) {
+             ((Application) INSTANCE.mCtx.getApplicationContext()).registerActivityLifecycleCallbacks(mListener);
         }
-
         /**
          * the view will be insert in view pool
          *  id_view | linkid => view
          */
-        if(view.getId()==View.NO_ID&&linkId.length==0){
-
-            new InvalidParameterException("view must have id setted or indicate linkId");
-
+        if(view.getId()==View.NO_ID){
+            new InvalidParameterException("view must have id setted ");
             return null;
         }
-
+        /**make object lesson card ready to store**/
         mLessonCardsViewPool = mLessonCardsViewPool ==null?new HashMap(): mLessonCardsViewPool;
-        mLessonCardsViewPool.put(mLessonCardsViewPool.size() + 1, view);
+        mLessonCardsViewPool.put(view.getId(), view);
 
         /**creating lesson card that refers to view defined upon**/
-        LessonCard lessonCard=new LessonCard(mLessonCardsViewPool.size(),isTransient);
+        LessonCard lessonCard=new LessonCard(view.getId(),args,listener);
 
         return lessonCard;
     }
-
-    /**
-     *
-     * @param activityClass
-     * @return
-     */
-    public <T extends  Activity> LessonCard getLessonCardBy(Class<T> activityClass){   return   mSourceEventLessonCard.get(activityClass.getName()); }
-     /**
-     * sourceView view associated with lessoncard
-     * could be Button or any kind of clickable view
-     * @param sourceView
-     * @return
-     */
-    public LessonCard getLessonCardBy(View sourceView){
-
-        if(sourceView.getId()==View.NO_ID){
-
-            new InvalidParameterException("view must have id setted or indicate linkid");
-
-            return null;
-        }
-
-        return   mSourceEventLessonCard.get(sourceView.getId());
-    }
-
-    public void removeCard(View sourceView) {
-
-        if (sourceView.getId() == View.NO_ID) {
-
-            new InvalidParameterException("view must have id setted or indicate linkid");
-
-            return;
-        }
-
-        removeCard(sourceView.getId() + "");
-    }
-
-    public void removeCard(Class<Activity> activityClass) {removeCard(activityClass.getName()); }
-
-    public void removeCard(String key){
-
-        mSourceEventLessonCard.remove(key);
-
-        if ( mSourceEventLessonCard.size() == 0) {
-
-            ((Application) INSTANCE.mCtx.getApplicationContext()).unregisterActivityLifecycleCallbacks(mListener);
-        }
-    }
-
 
     private View injectInDefaultFrame(View child){
 
@@ -188,105 +188,139 @@ public class Teacher  {
         if(child.getLayoutParams() instanceof  FrameLayout.LayoutParams){
 
             FrameLayout.LayoutParams layoutParamsChild= (FrameLayout.LayoutParams) child.getLayoutParams();
-
             FrameLayout.LayoutParams layoutParamsCloned=new FrameLayout.LayoutParams((ViewGroup.MarginLayoutParams)layoutParamsChild);
-
             layoutParamsCloned.gravity=layoutParamsChild.gravity;
-
             mainTutorialWrapper.setLayoutParams(layoutParamsCloned);
-
-
-         /*   layoutParamsChild.width= ViewGroup.LayoutParams.MATCH_PARENT;
-
-            layoutParamsChild.height= ViewGroup.LayoutParams.MATCH_PARENT;*/
         }
-
-        mainTutorialWrapper.setId(R.id.main_wrapper_lesson_card_id);
-
-
+        mainTutorialWrapper.setId(R.id.lesson_card_main_wrapper_id);
 
         if(mLastViewInflatedId==child.getId()){
 
-            View view=((Activity) mCtx).findViewById(R.id.main_wrapper_lesson_card_id);
-
+            View view=((Activity) mCtx).findViewById(R.id.lesson_card_main_wrapper_id);
             view=view==null?child:view;
-
             if(view!=null&&view.getParent()!=null) ((ViewGroup)view.getParent()).removeView(view);
         }
 
         mLastViewInflatedId=child.getId();
-
-        mainTutorialWrapper.removeAllViews();
-
         mainTutorialWrapper.addView(child);
 
         return mainTutorialWrapper;
     }
 
-    private void showLesson(LessonCard lessonCard,Activity activity,String lessonAnchor){
+    private void showLesson(LessonCard lessonCard,Activity activity,String discriminator){
 
-        if(lessonCard==null){return;}
+        if(lessonCard==null)return;
+
+        View viewToShow=lessonCard.getView();
+
+        String id=viewToShow.getId()+"";
+
+        /**check if references to view are at zero **/
+        if(mLessonCardsViewReferences==null
+                ||mLessonCardsViewReferences.get(id)==null
+                ||mLessonCardsViewReferences.get(id)==0
+                ||mLessonCardsTimesCounter.get(discriminator)==0){return;}
         //check dependencies
+
         for (String dependencyLessonCardAnchor : lessonCard.mLessonCardsDependencies){
 
-            if(mSourceEventLessonCard.containsKey(dependencyLessonCardAnchor)){return;}
+            if(mLessonCardsTimesCounter.containsKey(dependencyLessonCardAnchor)
+               &&mLessonCardsTimesCounter.get(dependencyLessonCardAnchor)>0){return;}
         }
+
+        /**test ok show it**/
         FrameLayout rootLayout = (FrameLayout)activity.findViewById(android.R.id.content);
+        /**map parameters on view**/
+        lessonCard.recyclerListener.onRecycle(viewToShow, lessonCard.args);
 
         rootLayout.addView(injectInDefaultFrame(lessonCard.getView()));
+        /** couters update**/
+        mLessonCardsViewReferences.put(id, mLessonCardsViewReferences.get(id) - 1);
+        mLessonCardsTimesCounter.put(discriminator, mLessonCardsTimesCounter.get(discriminator) - 1);
 
-        lessonCard.mTimes--;
-
-        if(lessonCard.mTimes==0){  removeCard(lessonAnchor);    }
-        //persist on finish
-
-    }
-
-
-    private  class TeacherDefaultListener implements Application.ActivityLifecycleCallbacks,View.OnClickListener {
-
-    @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-      mCtx=activity;
-    }
-
-    @Override
-    public void onActivityStarted(Activity activity) {
-
-        LessonCard lessonCard=mSourceEventLessonCard.get(activity.getClass().getName());
-
-        showLesson(lessonCard,activity,activity.getClass().getName());
-    }
-
-    @Override
-    public void onActivityResumed(Activity activity) {}
-    @Override
-    public void onActivityPaused(Activity activity) {}
-    @Override
-    public void onActivityStopped(Activity activity) {
+        serializeIt();
 
     }
-    @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }
-    @Override
-    public void onActivityDestroyed(Activity activity) { }
 
-    @Override
-    public void onClick(View v) {
+    private void serializeIt(){
 
-            LessonCard lessonCard=mSourceEventLessonCard.get(v.getId());
+        ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).save(sStoreKeyLessonCardsViewReferences, mLessonCardsViewReferences);
+        ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).save(sStoreKeySourceEventLessonCard, mLessonCardsTimesCounter);
+        ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).commit(true);
 
-            showLesson(lessonCard, (Activity) v.getContext(),v.getId()+"");
+        }
+
+    private void deserializeIt(){
+
+       if(mTutorialComplete){return;}
+
+        Boolean lessonsLearned=ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).load(sTutorialComplete,Boolean.class);
+        if(lessonsLearned==Boolean.TRUE){
+            mTutorialComplete=true;
+            return;
+        }
+
+        if(mLessonCardsViewReferences==null){
+            mLessonCardsViewReferences= ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).load(sStoreKeyLessonCardsViewReferences,HashMap.class);
+
+            if(mLessonCardsViewReferences!=null){
+                mTutorialComplete=true;
+
+                for(Double counter:mLessonCardsViewReferences.values()){
+
+                    if(counter>0){
+                        mTutorialComplete=false;
+                        break;
+                    }
+                }
+
+                if(lessonsLearned==null &&mTutorialComplete){
+                    ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).save(sTutorialComplete,Boolean.TRUE);
+                    ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).commit(true);
+                    return;
+                }
+            }
+            mLessonCardsViewReferences=mLessonCardsViewReferences==null?new HashMap<String,Double>():mLessonCardsViewReferences;
+        }
+
+        if(mLessonCardsTimesCounter==null){
+            mLessonCardsTimesCounter= ObjectSerializer.getInstance(mCtx,Context.MODE_PRIVATE).load(sStoreKeySourceEventLessonCard,HashMap.class);
+            mLessonCardsTimesCounter=mLessonCardsTimesCounter==null?new HashMap<String,Double>():mLessonCardsTimesCounter;
         }
     }
 
+    public static class LessonArgs{
 
+        int iconResource;
+        String actionLabel;
+        String descriptionLabel;
+        String color;
 
-    public  interface LessonCardListener{
+        public LessonArgs(int iconResource,String actionLabel,String descriptionLabel,String color){
 
+            this.iconResource=iconResource;
+            this.descriptionLabel=descriptionLabel;
+            this.actionLabel=actionLabel;
+            this.color=color;
+        }
+    }
+
+    public    interface  LessonCardViewRecyclerListener <T> {
+
+        /** indicate how to map arguments to view **/
+        void  onRecycle(View view,T args);
+}
+
+    public   interface LessonCardListener{
         void  onActionClick(LessonCard lessonCard);
-
         void  onCloseClick(LessonCard lessonCard);
+    }
+
+
+    private static class DefaultLessonViewHolder{
+
+        public TextView descriptioTextView,actionTextView;
+        public ImageView iconView, closeImageView;
     }
 
     /**
@@ -296,18 +330,33 @@ public class Teacher  {
      */
     public class LessonCard implements Serializable{
 
+        private transient boolean mExit=false;
         private transient int mCardViewLink=-1;
-        private int mTimes=1;
-        private boolean mIsTransient=false;
-        private final ArrayList<String> mLessonCardsDependencies=new ArrayList<String>();
+        private transient  Object args;
+        private transient  LessonCardViewRecyclerListener recyclerListener;
+        private final ArrayList<String> mLessonCardsDependencies=new ArrayList();
+        private double mTimes=1;
 
-        public LessonCard(int lessonViewAnchor,boolean isTransient){
-
+        public LessonCard(){mExit=true;}
+        public LessonCard(int lessonViewAnchor,Object args,LessonCardViewRecyclerListener recyclerListener){
             this.mCardViewLink=lessonViewAnchor;
+            this.args=args;
+            this.recyclerListener=recyclerListener;
 
-            this.mIsTransient=isTransient;
         }
 
+        private boolean activateLessonCard(String cardKey){
+
+            mSourceEventLessonCard=mSourceEventLessonCard==null?new HashMap():mSourceEventLessonCard;
+            mLessonCardsTimesCounter=mLessonCardsTimesCounter==null?new HashMap():mLessonCardsTimesCounter;
+            mSourceEventLessonCard.put(cardKey,this);
+           if(mExit||(mLessonCardsTimesCounter.get(cardKey)!=null)){ return true;}
+            mLessonCardsTimesCounter.put(cardKey,mTimes);
+            mLessonCardsViewReferences.put(mCardViewLink+"",mLessonCardsViewReferences.containsKey(mCardViewLink+"")?
+            mLessonCardsViewReferences.get(mCardViewLink+"")+mTimes:mTimes);
+            serializeIt();
+            return false;
+        }
         /**
          * means that this the lesson card view has to be showed
          * on activity start
@@ -315,13 +364,8 @@ public class Teacher  {
          * @return
          */
         public  <T extends  Activity> LessonCard showOnActivityStart(Class<T> activityClazz){
-
-            mSourceEventLessonCard=mSourceEventLessonCard==null?new HashMap<String,LessonCard>():mSourceEventLessonCard;
-
-            mSourceEventLessonCard.put(activityClazz.getName(),this);
-
+            if(activateLessonCard(activityClazz.getName())){return this;}
             return this;
-
         }
 
         /**
@@ -332,21 +376,10 @@ public class Teacher  {
          */
         public LessonCard showWhenClickOn(View view){
 
-            if(view.getId()==View.NO_ID){
-
-                Log.e(sTag,"view must have id setted");
-
-                return this;
-            }
-
-            view.setClickable(true);
-
+            if(view.getId()==View.NO_ID){ Log.e(sTag,"view must have id setted"); return this;}
+            if(activateLessonCard(view.getId()+"")){return this;}
+             view.setClickable(true);
             view.setOnClickListener(mListener);
-
-            mSourceEventLessonCard=mSourceEventLessonCard==null?new HashMap<String,LessonCard>():mSourceEventLessonCard;
-
-            mSourceEventLessonCard.put(view.getId()+"", this);
-
             return this;
         }
 
@@ -358,39 +391,82 @@ public class Teacher  {
          */
         public LessonCard executeFor(int times){
 
+            if(mExit){return this;}
             this.mTimes=times;
-
             return this;
         }
 
         private LessonCard addDependency(String cardId){
-
+            if(mExit){return this;}
             mLessonCardsDependencies.add(cardId);
-
             return this;
-
         }
 
-
-
-
         public <T extends  Activity>LessonCard addDependency(Class<T> activityClass){
-
-            mLessonCardsDependencies.add(activityClass.getName());
-
-            return this;
+            if(mExit){return this;}
+            addDependency(activityClass.getName());
+             return this;
         }
 
         public  LessonCard addDependency(View view){
 
-            mLessonCardsDependencies.add(view.getId()+"");
-
+            if(mExit){return this;}
+            addDependency(view.getId() + "");
             return this;
-
         }
 
 
         public View getView(){ return mLessonCardsViewPool.get(mCardViewLink); }
 
+        public void printLog(){
+
+            Log.i(sTag,"===========LESSON-CARDS COUNTERr===================");
+           for (Map.Entry lessonCardCounterRow :mLessonCardsTimesCounter.entrySet()){
+               Log.i(sTag,lessonCardCounterRow.getKey()+"=>"+lessonCardCounterRow.getValue());
+           }
+            Log.i(sTag,"======================================================");
+            Log.i(sTag,"===========SOURCEVIEWSFIRED-> LESSON_CARD ===================");
+            for (Map.Entry lessonCardCounterRow :mSourceEventLessonCard.entrySet()){
+                Log.i(sTag,lessonCardCounterRow.getKey()+"=>"+lessonCardCounterRow.getValue());
+            }
+            Log.i(sTag,"======================================================");
+            Log.i(sTag,"===========VIEW REFERENCES COUNTER ===================");
+
+            for (Map.Entry lessonCardCounterRow :mLessonCardsViewReferences.entrySet()){
+                Log.i(sTag,lessonCardCounterRow.getKey()+"=>"+lessonCardCounterRow.getValue());
+            }
+            Log.i(sTag,"======================================================");
+        }
+
+        @Override
+        public String toString() {return new Gson().toJson(this);}
     }
+
+    private  class TeacherDefaultListener implements Application.ActivityLifecycleCallbacks,View.OnClickListener {
+
+        @Override
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) { mCtx=activity; }
+        @Override
+        public void onActivityStarted(Activity activity) {
+            LessonCard lessonCard=mSourceEventLessonCard.get(activity.getClass().getName());
+            showLesson(lessonCard, activity,activity.getClass().getName());
+        }
+        @Override
+        public void onActivityResumed(Activity activity) {}
+        @Override
+        public void onActivityPaused(Activity activity) {}
+        @Override
+        public void onActivityStopped(Activity activity) {}
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }
+        @Override
+        public void onActivityDestroyed(Activity activity) { }
+
+        @Override
+        public void onClick(View v) {
+            LessonCard lessonCard=mSourceEventLessonCard.get(v.getId());
+            showLesson(lessonCard, (Activity) v.getContext(),v.getId()+"");
+        }
+    }
+
 }
