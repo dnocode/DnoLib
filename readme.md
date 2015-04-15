@@ -112,14 +112,16 @@ binding method
 
 
 ##Teacher
-Useful component for creating tutorial
+Useful component for creating app tour
 for now its just implements a default tutorial lesson card.
 
 ###Characteristics
 * allows to add lesson card view related to activity or button click
 * manage persistence of lesson already learn
 * internal holder pattern
+
 ###Todo
+
 1. implements view custom layout
 2. when a lesson is set to be repeated more than once, implements possibility  to pass LessonArgs List as arguments
 3. any help   suggestion  is appreciated
@@ -142,6 +144,47 @@ for now its just implements a default tutorial lesson card.
 
         }
 
+```
+
+##ALTERNATIVE  WITH CLICKLISTENERS ,CONDITION
+
+
+```
+   /**define lessons array in sequence**/
+         Teacher.LessonArgs[]  lessonsSameOnSameView=new Teacher.LessonArgs[2];
+         /**first lesson**/
+         lessonsSameOnSameView[0]=new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black");
+         /**second lesson with visibility condition**/
+         lessonsSameOnSameView[1]=new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide2", "green", new Teacher.LessonCardViewVisibilityCondition() {
+             @Override
+             public boolean visibilityIsAllowed() {
+                 return holderActivityLessonCondition;
+             }
+         });
+         /**add lesson click listener**/
+         lessonsSameOnSameView[1].addLessonCardListener(new Teacher.LessonCardOnClickListener() {
+             @Override
+             public void onActionClick(Teacher.LessonClickEvent event) {Log.i("lessonCard","action clicked");}
+             @Override
+             public void onCloseClick(Teacher.LessonClickEvent event) {Log.i("lessonCard","action clsoe clicked");  }
+         });
+
+
+         /**check if all lesson are learned**/
+         if(Teacher.instance(this).areLessonsLearned()==false) {
+
+                     Teacher.instance(this)
+                     /**add lesson show on singleFadeImageActivityShowed**/
+                     .addLessonCard(new Teacher.LessonArgs(-1, "SingleFadeImageActivity", "immagine singola scorrevole", "red"))
+                     .showOnActivityStart(SingleFadeImageActivity.class)
+                     /** dependency mean that this lesson depends of carouselActivity lesson **/
+                     .addDependency(CarouselActivity.class);
+                     /**add second lessons array | more lessons in the same view **/
+                     Teacher.instance(this)
+                     .addLessonCard(lessonsSameOnSameView)
+                     .showOnActivityStart(CarouselActivity.class).printLog();
+
+         }
 ```
 
 
