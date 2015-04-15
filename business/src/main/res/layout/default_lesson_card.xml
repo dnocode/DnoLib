@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/LessonCardId"
     android:layout_width="match_parent" android:layout_height="300dp"
-    android:padding="20dp">
+    android:padding="10dp">
 
 
     <ImageView
@@ -42,6 +42,7 @@
         android:layout_centerHorizontal="true"
         style="@style/TeachActionTextView"
         android:clickable="true"
+        android:padding="30dp"
         />
 
 

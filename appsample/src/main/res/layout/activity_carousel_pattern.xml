@@ -29,6 +29,16 @@
         android:animationDuration="200">
     </fr.rolandl.carousel.Carousel>
 
+
+
+        <Button
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/activeTutorialCondition"
+            android:text="activate tutorial condition"
+            />
+
     </RelativeLayout>
+
 
 </LinearLayout>

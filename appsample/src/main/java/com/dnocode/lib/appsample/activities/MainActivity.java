@@ -3,6 +3,7 @@ package com.dnocode.lib.appsample.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -14,6 +15,7 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
 
     private final int sLessonCardId=32323;
     private LinearLayout mMainContainer;
+    public static boolean holderActivityLessonCondition=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,15 +30,39 @@ public class MainActivity extends ActionBarActivity  implements View.OnClickList
         setContentView(mMainContainer);
 
 
+       /**define lessons array in sequence**/
+        Teacher.LessonArgs[]  lessonsSameOnSameView=new Teacher.LessonArgs[2];
+        /**first lesson**/
+        lessonsSameOnSameView[0]=new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black");
+        /**second lesson with visibility condition**/
+        lessonsSameOnSameView[1]=new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide2", "green", new Teacher.LessonCardViewVisibilityCondition() {
+            @Override
+            public boolean visibilityIsAllowed() {
+                return holderActivityLessonCondition;
+            }
+        });
+
+        /**add lesson click listener**/
+        lessonsSameOnSameView[1].addLessonCardListener(new Teacher.LessonCardOnClickListener() {
+            @Override
+            public void onActionClick(Teacher.LessonClickEvent event) {Log.i("lessonCard","action clicked");}
+            @Override
+            public void onCloseClick(Teacher.LessonClickEvent event) {Log.i("lessonCard","action clsoe clicked");  }
+        });
+
+
+        /**check if all lesson are learned**/
         if(Teacher.instance(this).areLessonsLearned()==false) {
 
                     Teacher.instance(this)
+                    /**add lesson show on singleFadeImageActivityShowed**/
                     .addLessonCard(new Teacher.LessonArgs(-1, "SingleFadeImageActivity", "immagine singola scorrevole", "red"))
                     .showOnActivityStart(SingleFadeImageActivity.class)
+                    /** dependency mean that this lesson depends of carouselActivity lesson **/
                     .addDependency(CarouselActivity.class);
-
-                     Teacher.instance(this)
-                    .addLessonCard(new Teacher.LessonArgs(-1, "CarouselActivity", "Images slide", "black"))
+                    /**add second lessons array | more lessons in the same view **/
+                    Teacher.instance(this)
+                    .addLessonCard(lessonsSameOnSameView)
                     .showOnActivityStart(CarouselActivity.class).printLog();
 
         }
