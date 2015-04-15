@@ -179,7 +179,7 @@ public class SingleSlideView extends ImageView {
 
         }
     }
-
+    @SuppressLint("NewApi")
         private void imageSliding(){
 
         if(mRequestCreatorList.isEmpty()){return;}
@@ -211,7 +211,11 @@ public class SingleSlideView extends ImageView {
 
 
         setVisibility(VISIBLE);
-        if(Build.VERSION.SDK_INT>=16) setImageAlpha(255);   else setAlpha(255);
+
+        if(Build.VERSION.SDK_INT >=16){setImageAlpha(255);}   else {
+
+            setAlpha(255);
+        }
         mRequestCreatorList.get(mCurrentRc).into(this,sPicassoCallback );
 
     }
