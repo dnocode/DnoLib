@@ -60,23 +60,23 @@ public class Teacher {
     private Boolean mTutorialComplete = false;
 
     private Teacher(Context context) {
-
         mCtx = context;
         deserializeIt();
-
     }
-
     /**
      * create singleton*
      */
     public static Teacher instance(Context... context) {
-
         return INSTANCE == null ? (INSTANCE = new Teacher(context.length > 0 ? context[0] : null)) : INSTANCE;
     }
 
-    public LessonCard getLessonCardBy(String cardKey) {
-        return mSourceEventLessonCard.get(cardKey);
-    }
+    /**
+     * show lesson that corresponding to that key
+     * @param key
+     */
+    public void fireLessonKey(String key) { showLesson(getLessonCardBy(key + sTutorialComplete), key + sTutorialComplete);}
+
+    public LessonCard getLessonCardBy(String cardKey) {return mSourceEventLessonCard.get(cardKey);}
 
     /**
      * add lesson view by resource layout id
@@ -90,21 +90,13 @@ public class Teacher {
         return null;
     }
 
-
-    public boolean areLessonsLearned() {
-        return this.mTutorialComplete;
-    }
-
-
+    public boolean areLessonsLearned() {return this.mTutorialComplete;}
     /** default card**/
     /**
      * todo possibilita` di passare piu` argomenti e per ogni esecuzione nella stessa view aggiornarli*
      */
 
-    public LessonCard addLessonCard(LessonArgs ... args) {
-
-        return addLessonCard( R.style.TeachActionTextView, R.style.TeachDescriptionTextView,args);
-    }
+    public LessonCard addLessonCard(LessonArgs ... args) {  return addLessonCard( R.style.TeachActionTextView, R.style.TeachDescriptionTextView,args); }
 
     public LessonCard addLessonCard( int actionStyleId, int descStyleId,LessonArgs ... args) {
 
@@ -210,8 +202,7 @@ public class Teacher {
         return lessonCard;
     }
 
-
-    private void showLesson(LessonCard lessonCard, Activity activity, String discriminator) {
+    private void showLesson(LessonCard lessonCard,String discriminator) {
 
         /**conditions**/
         if (lessonCard == null) return;
@@ -241,7 +232,7 @@ public class Teacher {
 
         /**==============end conditions==========================*/
         /**test ok show it**/
-        FrameLayout rootLayout = (FrameLayout) activity.findViewById(android.R.id.content);
+        FrameLayout rootLayout = (FrameLayout) ((Activity)mCtx).findViewById(android.R.id.content);
 
         /**check if is a default LessonCard**/
         DefaultLessonViewHolder lessonViewHolder = lessonCard.getView().getTag(R.id.lesson_view_holder) != null ?
@@ -261,8 +252,6 @@ public class Teacher {
             actionView.setTag(R.id.lesson_on_click_tag, lessonCard.mCardHook);
             closeButtonView.setTag(R.id.lesson_on_click_tag, lessonCard.mCardHook);
         }
-
-
         lessonCard.recyclerListener.onRecycle(viewToShow,currentArgs);
         rootLayout.addView(injectInDefaultFrame(lessonCard.getView()));
         /** couters update**/
@@ -286,7 +275,6 @@ public class Teacher {
             mainTutorialWrapper.setLayoutParams(layoutParamsCloned);
         }
         mainTutorialWrapper.setId(R.id.lesson_card_main_wrapper_id);
-
         if (mLastViewInflatedId == child.getId()) {
 
             View view = ((Activity) mCtx).findViewById(R.id.lesson_card_main_wrapper_id);
@@ -306,7 +294,6 @@ public class Teacher {
         ObjectSerializer.getInstance(mCtx, Context.MODE_PRIVATE).save(sStoreKeyLessonCardsViewReferences, mLessonCardsViewReferences);
         ObjectSerializer.getInstance(mCtx, Context.MODE_PRIVATE).save(sStoreKeySourceEventLessonCard, mLessonCardsTimesCounter);
         ObjectSerializer.getInstance(mCtx, Context.MODE_PRIVATE).commit(true);
-
     }
 
     private void deserializeIt() {
@@ -348,8 +335,6 @@ public class Teacher {
             mLessonCardsTimesCounter = mLessonCardsTimesCounter == null ? new HashMap<String, Double>() : mLessonCardsTimesCounter;
         }
     }
-
-
     private class DefaultLessonCardCloseListener implements LessonCardOnClickListener {
 
         @Override
@@ -383,14 +368,10 @@ public class Teacher {
             if(condition.length>0){ this.condition=condition[0];}
         }
 
-
-
         public void addLessonCardListener(LessonCardOnClickListener listener) {
 
             this.mClickListeners.add(listener);
-
         }
-
 
         public void dispatchEvent(LessonClickEvent evt){
 
@@ -399,12 +380,8 @@ public class Teacher {
                 if(evt.whatIsIt==LessonClickEvent.ACTION_EVT){listener.onActionClick(evt); }
                 if(evt.whatIsIt==LessonClickEvent.CLOSE_EVT){listener.onCloseClick(evt); }
             }
-
         }
-
     }
-
-
 
     public interface LessonCardViewVisibilityCondition{ boolean visibilityIsAllowed();}
     public interface LessonCardViewRecyclerListener {
@@ -502,6 +479,11 @@ public class Teacher {
           return this;
         }
 
+        public  LessonCard showOnKeyFire(String key) {
+            activateLessonCard(key+sTutorialComplete);
+            return this;
+        }
+
         /**
          * means that this lesson card view has to be showed
          * on button click
@@ -564,16 +546,13 @@ public class Teacher {
             return this;
         }
 
-
         public LessonCard addLessonArgs(LessonArgs args) {
 
             if (mExit) {
                 Log.e(sTag,"LessonArgs");
                 return this;
             }
-
            this.mArgs.add(args);
-
             return this;
         }
 
@@ -616,12 +595,12 @@ public class Teacher {
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
             mCtx = activity;
         }
-
         @Override
         public void onActivityStarted(Activity activity) {
             LessonCard lessonCard = mSourceEventLessonCard.get(activity.getClass().getName());
-            showLesson(lessonCard, activity, activity.getClass().getName());
+            showLesson(lessonCard,activity.getClass().getName());
         }
+
         @Override
         public void onActivityResumed(Activity activity) {}
         @Override
@@ -638,11 +617,14 @@ public class Teacher {
 
             LessonCard lessonCard = mSourceEventLessonCard.get(v.getId());
             if (lessonCard != null) {
-                showLesson(lessonCard, (Activity) v.getContext(), v.getId() + "");
+                showLesson(lessonCard,v.getId() + "");
                 return;
             }
+
             String cardHook = (String) v.getTag(R.id.lesson_on_click_tag);
+
             lessonCard=mSourceEventLessonCard.get(cardHook);
+
             int argsIndex=(int)(lessonCard.mArgs.size()- mLessonCardsTimesCounter.get(cardHook)-1);
             LessonArgs currentArgs=lessonCard.mArgs.size()>argsIndex?lessonCard.mArgs.get(argsIndex):lessonCard.mArgs.get(0);
             if (v.getId() == R.id.LessonCardCloseView||v.getId() == R.id.LessonCardActionTextView) {currentArgs.dispatchEvent(new LessonClickEvent(v)); }
