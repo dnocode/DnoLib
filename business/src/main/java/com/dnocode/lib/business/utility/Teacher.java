@@ -211,7 +211,6 @@ public class Teacher {
         if (lessonCard == null) {return;}
 
         View viewToShow = lessonCard.getView();
-
         String id = viewToShow.getId() + "";
 
 
@@ -257,10 +256,14 @@ public class Teacher {
             closeButtonView.setTag(R.id.lesson_on_click_tag, lessonCard.mCardHook);
         }
 
-            lessonCard.recyclerListener.onRecycle(viewToShow,currentArgs);
+        View mainTutorialWrapperView=((Activity) mCtx).findViewById(R.id.lesson_card_main_wrapper_id);
 
+        FrameLayout mainTutorialWrapper  =mainTutorialWrapperView!=null?(FrameLayout) mainTutorialWrapperView:null;
 
-        FrameLayout mainTutorialWrapper  = (FrameLayout)((Activity) mCtx).findViewById(R.id.lesson_card_main_wrapper_id);
+        if(mainTutorialWrapper!=null&&mainTutorialWrapper.getVisibility()==View.VISIBLE){return;}
+
+        lessonCard.recyclerListener.onRecycle(viewToShow,currentArgs);
+
 
         if(mainTutorialWrapper==null){
             rootLayout.addView(injectInDefaultFrame(lessonCard.getView()));
@@ -471,8 +474,11 @@ public class Teacher {
         private boolean activateLessonCard(String cardKey) {
 
             mSourceEventLessonCard = mSourceEventLessonCard == null ? new HashMap() : mSourceEventLessonCard;
+
             mLessonCardsTimesCounter = mLessonCardsTimesCounter == null ? new HashMap() : mLessonCardsTimesCounter;
+
             mCardHook=cardKey;
+
             mSourceEventLessonCard.put(cardKey, this);
 
             if (mExit || (mLessonCardsTimesCounter.get(cardKey) != null)) {return true;}
