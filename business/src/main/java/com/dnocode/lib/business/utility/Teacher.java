@@ -37,6 +37,7 @@ public class Teacher {
     private final static String sStoreKeySourceEventLessonCard = "SK_SE_LC";
     private final static String sStoreKeyLessonCardsViewReferences = "SK_LC_VR";
     private final static String sTutorialComplete = "T_C";
+    private final static String sVoidCollision = "v_C";
 
     private Context mCtx = null;
     /**
@@ -74,7 +75,7 @@ public class Teacher {
      * show lesson that corresponding to that key
      * @param key
      */
-    public void fireLessonKey(String key) { showLesson(getLessonCardBy(key + sTutorialComplete), key + sTutorialComplete);}
+    public void fireLessonKey(String key) { showLesson(getLessonCardBy(key + sVoidCollision), key + sVoidCollision);}
 
     public LessonCard getLessonCardBy(String cardKey) {return mSourceEventLessonCard.get(cardKey);}
 
@@ -107,7 +108,7 @@ public class Teacher {
 
         /**check if all lessonCard relate  to this view are showed  if it`s so return empty card **/
         if (mLessonCardsViewReferences.containsKey(R.layout.default_lesson_card)
-                && mLessonCardsViewReferences.get(R.layout.default_lesson_card) == 0) {
+          &&mLessonCardsViewReferences.get(R.layout.default_lesson_card) == 0) {
 
             Log.v(sTag, "default lesson card view references == 0 return empty card");
             return new LessonCard();
@@ -119,6 +120,7 @@ public class Teacher {
             Log.v(sTag, "found view in lesson cards pool recycle it ");
             lessonView = (RelativeLayout) mLessonCardsViewPool.get(R.id.LessonCardId);
         }
+
         DefaultLessonViewHolder lessonViewHolder;
         /**create lesson view if doesn`t exist**/
         if (lessonView == null) {
@@ -205,10 +207,12 @@ public class Teacher {
     private void showLesson(LessonCard lessonCard,String discriminator) {
 
         /**conditions**/
-        if (lessonCard == null) return;
+        if (lessonCard == null) {return;}
 
         View viewToShow = lessonCard.getView();
+
         String id = viewToShow.getId() + "";
+
 
         /**check if references to view are at zero **/
         if (mLessonCardsViewReferences == null
@@ -233,7 +237,6 @@ public class Teacher {
         /**==============end conditions==========================*/
         /**test ok show it**/
         FrameLayout rootLayout = (FrameLayout) ((Activity)mCtx).findViewById(android.R.id.content);
-
         /**check if is a default LessonCard**/
         DefaultLessonViewHolder lessonViewHolder = lessonCard.getView().getTag(R.id.lesson_view_holder) != null ?
                 (DefaultLessonViewHolder) lessonCard.getView().getTag(R.id.lesson_view_holder)
@@ -252,20 +255,35 @@ public class Teacher {
             actionView.setTag(R.id.lesson_on_click_tag, lessonCard.mCardHook);
             closeButtonView.setTag(R.id.lesson_on_click_tag, lessonCard.mCardHook);
         }
-        lessonCard.recyclerListener.onRecycle(viewToShow,currentArgs);
-        rootLayout.addView(injectInDefaultFrame(lessonCard.getView()));
+
+            lessonCard.recyclerListener.onRecycle(viewToShow,currentArgs);
+
+
+        FrameLayout mainTutorialWrapper  = (FrameLayout)((Activity) mCtx).findViewById(R.id.lesson_card_main_wrapper_id);
+
+        if(mainTutorialWrapper==null){
+            rootLayout.addView(injectInDefaultFrame(lessonCard.getView()));
+        }else
+        {
+
+            if(!(mLastViewInflatedId+"").equals(lessonCard.getView().getId()+"")){
+                mainTutorialWrapper.removeAllViews();
+                mainTutorialWrapper.addView(lessonCard.getView());
+            }
+             mainTutorialWrapper.setVisibility(View.VISIBLE);
+        }
+
         /** couters update**/
         mLessonCardsViewReferences.put(id, mLessonCardsViewReferences.get(id) - 1);
         mLessonCardsTimesCounter.put(discriminator, mLessonCardsTimesCounter.get(discriminator) - 1);
-
         serializeIt();
-
     }
 
 
     private View injectInDefaultFrame(View child) {
 
-        FrameLayout mainTutorialWrapper = new FrameLayout(child.getContext());
+        //todo sett parent null
+        FrameLayout mainTutorialWrapper=new FrameLayout(mCtx);
 
         if (child.getLayoutParams() instanceof FrameLayout.LayoutParams) {
 
@@ -274,17 +292,10 @@ public class Teacher {
             layoutParamsCloned.gravity = layoutParamsChild.gravity;
             mainTutorialWrapper.setLayoutParams(layoutParamsCloned);
         }
+
         mainTutorialWrapper.setId(R.id.lesson_card_main_wrapper_id);
-        if (mLastViewInflatedId == child.getId()) {
-
-            View view = ((Activity) mCtx).findViewById(R.id.lesson_card_main_wrapper_id);
-            view = view == null ? child : view;
-            if (view != null && view.getParent() != null)
-                ((ViewGroup) view.getParent()).removeView(view);
-        }
-
-        mLastViewInflatedId = child.getId();
         mainTutorialWrapper.addView(child);
+        mLastViewInflatedId = child.getId();
 
         return mainTutorialWrapper;
     }
@@ -480,7 +491,7 @@ public class Teacher {
         }
 
         public  LessonCard showOnKeyFire(String key) {
-            activateLessonCard(key+sTutorialComplete);
+            activateLessonCard(key+sVoidCollision);
             return this;
         }
 
@@ -514,35 +525,34 @@ public class Teacher {
          */
         public LessonCard executeFor(int times) {
 
-            if (mExit) {
-                return this;
-            }
+            if (mExit) { return this;}
             this.mTimes = times;
             return this;
         }
 
-        private LessonCard addDependency(String cardId) {
-            if (mExit) {
-                return this;
-            }
-            mLessonCardsDependencies.add(cardId);
-            return this;
-        }
-
         public <T extends Activity> LessonCard addDependency(Class<T> activityClass) {
-            if (mExit) {
-                return this;
-            }
-            addDependency(activityClass.getName());
+            if (mExit) {return this;}
+            addDependencyInternal(activityClass.getName(),false);
             return this;
         }
 
         public LessonCard addDependency(View view) {
 
-            if (mExit) {
-                return this;
-            }
-            addDependency(view.getId() + "");
+            if (mExit) { return this;}
+
+            addDependencyInternal(view.getId() + "",false);
+            return this;
+        }
+
+        public LessonCard addDependency(String cardKey) {
+            addDependencyInternal(cardKey,true);
+            return this;
+        }
+
+          private LessonCard addDependencyInternal(String cardKey,boolean voidCollision) {
+
+            if (mExit) {return this;}
+            mLessonCardsDependencies.add(voidCollision?cardKey+sVoidCollision:cardKey);
             return this;
         }
 
@@ -555,9 +565,6 @@ public class Teacher {
            this.mArgs.add(args);
             return this;
         }
-
-
-
 
         public View getView() {
             return mLessonCardsViewPool.get(mCardViewLink);
