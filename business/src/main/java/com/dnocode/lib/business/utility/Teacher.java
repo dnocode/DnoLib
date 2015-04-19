@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -282,7 +283,13 @@ public class Teacher {
 
     private View injectInDefaultFrame(View child) {
 
-        //todo sett parent null
+
+        ViewParent parent =child.getParent();
+        if (parent != null) {
+            ViewGroup parentViewGroup=(ViewGroup)parent;
+            parentViewGroup.removeView(child);
+        }
+
         FrameLayout mainTutorialWrapper=new FrameLayout(mCtx);
 
         if (child.getLayoutParams() instanceof FrameLayout.LayoutParams) {
@@ -599,17 +606,16 @@ public class Teacher {
     private class TeacherDefaultListener implements Application.ActivityLifecycleCallbacks, View.OnClickListener {
 
         @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            mCtx = activity;
-        }
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) { }
         @Override
         public void onActivityStarted(Activity activity) {
+            mCtx = activity;
             LessonCard lessonCard = mSourceEventLessonCard.get(activity.getClass().getName());
             showLesson(lessonCard,activity.getClass().getName());
         }
 
         @Override
-        public void onActivityResumed(Activity activity) {}
+        public void onActivityResumed(Activity activity) { }
         @Override
         public void onActivityPaused(Activity activity) {}
         @Override
