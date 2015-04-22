@@ -38,64 +38,32 @@ public class SingleSlideView extends ImageView {
     private  int mCurrentRc =0;
     private  static Animation.AnimationListener sAnimatorListener;
     private static Callback sPicassoCallback;
-    private static  AlphaAnimation sAlphaAnimation;
-    public int active =2500;
-    public int duration =500;
+    private static  AlphaAnimation sAnimationFadeIn,sAnimationFadeOut;
+    public int active =1500;
+    public int duration =800;
     public TransformationType transformationType;
     public int drawableError=-1;
 
     public SingleSlideView(Context context) {
         super(context, null, 0);
     }
+
     public SingleSlideView(Context context,AttributeSet attrs) {
         super(context,attrs,0);
     }
+
     public SingleSlideView(Context context,AttributeSet attrs,int defStyle) {
         super(context,attrs,defStyle);
         init(attrs);
     }
 
     @Override
-    protected void onAttachedToWindow() {
-
-        super.onAttachedToWindow();
-
-        if (sAnimatorListener == null) {
-
-            sAnimatorListener = new Animation.AnimationListener() {
-
-                @Override
-                public void onAnimationStart(Animation animation) { }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-
-                    setVisibility(GONE);
-                    animation.cancel();
-                    imageSliding();
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-
-                }
-            };
-
-
-
-        }
-
-        imageSliding();
-
-    }
+    protected void onAttachedToWindow() {super.onAttachedToWindow();}
 
     @Override
     protected void onDetachedFromWindow() {
-
-        sAnimatorListener=null;
-        sAlphaAnimation=null;
-        sPicassoCallback=null;
-        super.onDetachedFromWindow();
+       reset();
+      super.onDetachedFromWindow();
     }
 
     @Override
@@ -123,10 +91,9 @@ public class SingleSlideView extends ImageView {
     public void init(AttributeSet attrs){
 
         TypedArray a = getContext().getTheme().obtainStyledAttributes( attrs, R.styleable.SingleSlideView,0, 0);
-
         try {
 
-             duration = a.getInt(R.styleable.SingleSlideView_android_duration,1000);
+            duration = a.getInt(R.styleable.SingleSlideView_android_duration,1000);
              int valuesResId = a.getResourceId(R.styleable.SingleSlideView_imagesEntries, -1);
 
             if (valuesResId != -1) {
@@ -139,10 +106,6 @@ public class SingleSlideView extends ImageView {
         } finally {
             a.recycle();
         }
-
-
-
-
 
     }
 
@@ -159,7 +122,6 @@ public class SingleSlideView extends ImageView {
             super.writeToParcel(out, flags);
             out.writeInt(currentImageIndex);
         }
-
 
         @SuppressWarnings("hiding")
         public static final Parcelable.Creator<SavedState> CREATOR
@@ -183,59 +145,52 @@ public class SingleSlideView extends ImageView {
         private void imageSliding(){
 
         if(mRequestCreatorList.isEmpty()){return;}
-
+        if (sAnimatorListener == null) { sAnimatorListener =new SingleSlideAnimationListener(); }
+        if(sAnimationFadeOut==null) {
+            sAnimationFadeOut = new AlphaAnimation(1f, 0f);
+            sAnimationFadeOut.setDuration(duration / 2);
+            sAnimationFadeOut.setStartOffset(active);
+            sAnimationFadeIn = new AlphaAnimation(0f, 1f);
+            sAnimationFadeIn.setDuration(duration / 2);
+            sAnimationFadeIn.setAnimationListener(sAnimatorListener);
+            sAnimationFadeOut.setAnimationListener(sAnimatorListener);
+        }
         if(sPicassoCallback==null){
-
             sPicassoCallback=new Callback() {
                 @SuppressLint("NewApi")
                 @Override
                 public void onSuccess() {
-
-                    if(sAlphaAnimation==null) {
-                        sAlphaAnimation = new AlphaAnimation(1f, 0f);
-                        sAlphaAnimation.setDuration(duration);
-                        sAlphaAnimation.setStartOffset(active);
-                        sAlphaAnimation.setFillAfter(false);
-                        sAlphaAnimation.setAnimationListener(sAnimatorListener);
-                    }
-
-                    startAnimation(sAlphaAnimation);
-
+                   if(mRequestCreatorList.size()>1){ startAnimation(sAnimationFadeIn); }
                     mCurrentRc = mCurrentRc ==mRequestCreatorList.size()-1?0: mCurrentRc +1;
                 }
-
                 @Override
                 public void onError() { Log.e(getClass().getSimpleName(),"error on image loading");}
             };
         }
 
-
-        setVisibility(VISIBLE);
-
-        if(Build.VERSION.SDK_INT >=16){setImageAlpha(255);}   else {
-
-            setAlpha(255);
-        }
-        mRequestCreatorList.get(mCurrentRc).into(this,sPicassoCallback );
-
+         mRequestCreatorList.get(mCurrentRc).into(this,sPicassoCallback );
     }
 
 
+    private void reset(){
 
+        sAnimatorListener=null;
+        sAnimationFadeIn=null;
+        sAnimationFadeOut=null;
+        sPicassoCallback=null;
+
+    }
     public void clear(){
 
         mRequestCreatorList.clear();
         mCurrentRc =0;
-
     }
-
 
    public void addSlide(String ... url ) {
 
       for(String uri : url) {
 
           RequestCreator requestCreator = Picasso.with(getContext()).load(uri);
-
           addSlide(requestCreator);
       }
     }
@@ -243,39 +198,52 @@ public class SingleSlideView extends ImageView {
     public void addSlide(int resource ) {
 
         RequestCreator requestCreator= Picasso.with(getContext()).load(resource);
-
         addSlide(requestCreator);
     }
 
 
     public void  addSlide(RequestCreator  rc)  {
 
-       rc.error(drawableError);
-
+       reset();
+        rc.error(drawableError);
         Transformation cTransformation=null;
-
         if(transformationType!=null&&transformationType != TransformationType.empty)
         {
             switch (transformationType){
-
                 case circle:
                     cTransformation=new CircleTransform();
                     break;
-
                 case square:
                     cTransformation=new CropSquareTransformation();
                     break;
-
-
             }
          }
-
         if(cTransformation!=null) {rc.transform(cTransformation);}
-
         mRequestCreatorList.add(rc);
+        imageSliding();
 
     }
 
+
+     class SingleSlideAnimationListener implements Animation.AnimationListener{
+
+
+         @Override
+         public void onAnimationStart(Animation animation) {}
+
+         @Override
+         public void onAnimationEnd(Animation animation) {
+
+                    if(animation==sAnimationFadeIn){
+                        startAnimation(sAnimationFadeOut);
+                    }else{
+                       imageSliding();
+                    }
+        }
+
+         @Override
+         public void onAnimationRepeat(Animation animation) {}
+     }
 
 
 }

@@ -26,22 +26,13 @@ public class SingleFadeImageActivity extends Activity {
 
 
         FrameLayout fl=new FrameLayout(this);
-
         mSlideSingleView =new SingleSlideView(this);
-
         mSlideSingleView.transformationType= TransformationType.circle;
-
         sHeightWidth= sHeightWidth==0? (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60, getResources().getDisplayMetrics()) :sHeightWidth;
-
         FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(sHeightWidth, sHeightWidth, Gravity.CENTER_HORIZONTAL|Gravity.CENTER_VERTICAL);
-
         mSlideSingleView.setLayoutParams(lp);
-
         fl.addView(mSlideSingleView);
-
         setContentView(fl);
-
-
 
     }
 
@@ -50,10 +41,7 @@ public class SingleFadeImageActivity extends Activity {
     public void onAttachedToWindow() {
 
         super.onAttachedToWindow();
-
         String [] imagesUri=this.getResources().getStringArray(R.array.images_uri);
-
-
         mSlideSingleView.addSlide(imagesUri);
     }
 }
